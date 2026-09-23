@@ -143,6 +143,14 @@ disconnectBtn.addEventListener("click", async () => {
   await refreshAuthStatus();
 });
 
+function sendSyncMessage(type) {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage({ type }, (response) => {
+      resolve(response || { ok: false, error: "No response from background script." });
+    });
+  });
+}
+
 saveBtn.addEventListener("click", async () => {
   const settings = {
     repoOwner: repoOwnerInput.value.trim(),
@@ -150,8 +158,25 @@ saveBtn.addEventListener("click", async () => {
     deviceName: deviceNameInput.value.trim(),
   };
   await chrome.storage.local.set({ settings });
-  saveStatus.textContent = "Saved.";
-  setTimeout(() => (saveStatus.textContent = ""), 2000);
+
+  saveBtn.disabled = true;
+  saveStatus.textContent = "Saved. Backing up and pushing...";
+
+  const backupResult = await sendSyncMessage("backup-now");
+  const pushResult = await sendSyncMessage("push-now");
+
+  const backupText = backupResult.ok
+    ? `backup: ${backupResult.result.branch}`
+    : `backup failed: ${backupResult.error}`;
+  const pushText = pushResult.ok
+    ? pushResult.result.pushed
+      ? `push: PR opened at ${pushResult.result.pr}`
+      : "push: no changes"
+    : `push failed: ${pushResult.error}`;
+
+  saveStatus.textContent = `Saved. ${backupText} | ${pushText}`;
+  saveBtn.disabled = false;
+  await refreshExistingDevices();
 });
 
 refreshDevicesBtn.addEventListener("click", refreshExistingDevices);
