@@ -1,6 +1,8 @@
 // Push: diff the live bookmark tree against the last-known-pushed snapshot,
 // commit the diff to this device's branch (rebased onto current trunk),
-// open or update a PR against main. Never writes to main directly.
+// open or update a PR against the repo's default branch. Never writes to
+// the default branch directly — the default branch name is resolved from
+// GitHub (repo.default_branch), never hardcoded.
 //
 // Pull: full wipe-and-rebuild of the local bookmark tree from trunk. Trunk
 // is truth — this intentionally does not try to merge, so it only scopes
@@ -21,6 +23,11 @@ async function getSettings() {
     throw new Error("Settings incomplete — set repo owner/name in options");
   }
   return settings;
+}
+
+async function getDefaultBranch(token, owner, repo) {
+  const repoInfo = await gh.getRepo(token, owner, repo);
+  return repoInfo.default_branch;
 }
 
 async function getShadow() {
@@ -59,14 +66,16 @@ export async function push() {
     return { pushed: false, reason: "no changes" };
   }
 
-  const mainRef = await gh.getRef(token, repoOwner, repoName, "heads/main");
-  if (!mainRef) {
+  const defaultBranch = await getDefaultBranch(token, repoOwner, repoName);
+  const trunkRef = await gh.getRef(token, repoOwner, repoName, `heads/${defaultBranch}`);
+  if (!trunkRef) {
     throw new Error(
-      `${repoOwner}/${repoName} has no 'main' branch yet — push an initial commit manually first, ` +
-        `so the extension always syncs through a reviewable PR, even for the first import.`
+      `${repoOwner}/${repoName} has no commits on its default branch ('${defaultBranch}') yet — ` +
+        `push an initial commit manually first, so the extension always syncs through a reviewable PR, ` +
+        `even for the first import.`
     );
   }
-  const trunkCommitSha = mainRef.object.sha;
+  const trunkCommitSha = trunkRef.object.sha;
   const trunkCommit = await gh.getCommit(token, repoOwner, repoName, trunkCommitSha);
   const trunkTreeSha = trunkCommit.tree.sha;
 
@@ -92,7 +101,7 @@ export async function push() {
     await gh.createRef(token, repoOwner, repoName, `refs/${branchRef}`, newCommitSha);
   }
 
-  let pr = await gh.findOpenPull(token, repoOwner, repoName, branchName, "main");
+  let pr = await gh.findOpenPull(token, repoOwner, repoName, branchName, defaultBranch);
   if (!pr) {
     pr = await gh.createPull(
       token,
@@ -100,7 +109,7 @@ export async function push() {
       repoName,
       `Sync from ${deviceName}`,
       branchName,
-      "main",
+      defaultBranch,
       `Automated bookmark sync from device "${deviceName}".\n\n${changed.length} file(s) changed, ${removed.length} removed.`
     );
   }
@@ -155,11 +164,12 @@ function ensureFolderNode(map, path) {
 }
 
 async function fetchTrunkFileMap(token, owner, repo) {
-  const mainRef = await gh.getRef(token, owner, repo, "heads/main");
-  if (!mainRef) {
-    throw new Error(`${owner}/${repo} has no 'main' branch yet`);
+  const defaultBranch = await getDefaultBranch(token, owner, repo);
+  const trunkRef = await gh.getRef(token, owner, repo, `heads/${defaultBranch}`);
+  if (!trunkRef) {
+    throw new Error(`${owner}/${repo} has no commits on its default branch ('${defaultBranch}') yet`);
   }
-  const trunkCommitSha = mainRef.object.sha;
+  const trunkCommitSha = trunkRef.object.sha;
   const trunkCommit = await gh.getCommit(token, owner, repo, trunkCommitSha);
   const treeData = await gh.getTreeRecursive(token, owner, repo, trunkCommit.tree.sha);
   if (treeData.truncated) {

@@ -23,6 +23,10 @@ async function ghFetch(path, token, options = {}) {
   return res.json();
 }
 
+export function getRepo(token, owner, repo) {
+  return ghFetch(`/repos/${owner}/${repo}`, token);
+}
+
 export function getRef(token, owner, repo, ref) {
   return ghFetch(`/repos/${owner}/${repo}/git/ref/${ref}`, token, { allow404: true });
 }
