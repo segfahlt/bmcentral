@@ -136,3 +136,7 @@ src/popup/                   Push / Pull / Backup / Restore buttons
   pulls) show up as real PR diffs/conflicts for manual review — intentional, not a
   bug: this project favors simple, human-reviewed merges over automatic conflict
   resolution.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
