@@ -55,6 +55,22 @@ SETUP (takes about 5 minutes)
 Full documentation and source code: https://github.com/segfahlt/bmcentral
 ```
 
+## Note to users (permissions / install approval page)
+
+Chrome's dashboard doesn't have a single stable field name for this across versions —
+it may live under "Privacy practices" as a general disclosure, or show up on the
+install-time permissions prompt depending on how Google is presenting it when you
+publish. Use this text wherever that user-facing note goes:
+
+```
+bmcentral only reads and writes bookmarks. Use a GitHub repository dedicated solely
+to your bookmarks — don't store anything else in it, since the extension manages
+that repo's contents directly as part of normal syncing.
+
+Source code (public): https://github.com/segfahlt/bmcentral
+GitHub App required for sync: https://github.com/apps/billsbookmarkmanager
+```
+
 ## Category
 
 Productivity
