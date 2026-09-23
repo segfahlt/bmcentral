@@ -117,6 +117,22 @@ export async function push() {
   }
 
   const defaultBranch = await getDefaultBranch(token, repoOwner, repoName);
+  const branchName = `sync/${deviceName}`;
+
+  // push() always diffs against current trunk, but shadow reflects "what I
+  // last told GitHub", not "what's actually merged". If a previous push's PR
+  // is still open, trunk hasn't caught up to what shadow believes is true —
+  // diffing against trunk now would reference paths that don't exist there
+  // yet (a common cause of GitHub's GitRPC::BadObjectState on tree creation).
+  // Refuse rather than silently build a broken commit.
+  const openPr = await gh.findOpenPull(token, repoOwner, repoName, branchName, defaultBranch);
+  if (openPr) {
+    throw new Error(
+      `You already have an open PR for this device (#${openPr.number}): ${openPr.html_url}\n` +
+        `Merge or close it before pushing again, so trunk and this device's local state stay in sync.`
+    );
+  }
+
   const trunkRef = await gh.getRef(token, repoOwner, repoName, `heads/${defaultBranch}`);
   if (!trunkRef) {
     throw new Error(
@@ -140,7 +156,6 @@ export async function push() {
   const commitMessage = `Sync from ${deviceName}: ${changed.length} changed, ${removed.length} removed`;
   const newCommitSha = await gh.createCommit(token, repoOwner, repoName, commitMessage, newTreeSha, trunkCommitSha);
 
-  const branchName = `sync/${deviceName}`;
   const branchRef = `heads/${branchName}`;
   const existingBranch = await gh.getRef(token, repoOwner, repoName, branchRef);
   if (existingBranch) {
