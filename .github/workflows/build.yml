@@ -1,0 +1,50 @@
+name: Build extension package
+
+# Packages only the extension's runtime files (no README/docs/git metadata)
+# into a zip, ready to upload to the Chrome Web Store dashboard. No Chrome
+# Web Store credentials involved — that step is still manual, see
+# STORE_LISTING.md. This just keeps a downloadable build always current.
+
+on:
+  push:
+    branches: [trunk]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build extension zip
+        run: |
+          STAGE=$(mktemp -d)
+          mkdir -p "$STAGE/icons" "$STAGE/src/lib" "$STAGE/src/options" "$STAGE/src/popup"
+          cp manifest.json background.js logo.png "$STAGE/"
+          cp icons/icon16.png icons/icon32.png icons/icon48.png icons/icon128.png "$STAGE/icons/"
+          cp src/lib/*.js "$STAGE/src/lib/"
+          cp src/options/*.html src/options/*.js "$STAGE/src/options/"
+          cp src/popup/*.html src/popup/*.js "$STAGE/src/popup/"
+          cp src/theme.css "$STAGE/src/"
+          (cd "$STAGE" && zip -r "$GITHUB_WORKSPACE/bmcentral.zip" . -x ".*")
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bmcentral-extension
+          path: bmcentral.zip
+          retention-days: 30
+
+      - name: Publish rolling "latest" release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(node -p "require('./manifest.json').version")
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest bmcentral.zip \
+            --title "bmcentral (latest build)" \
+            --notes "Auto-built from commit ${{ github.sha }} (manifest version ${VERSION}). This is an automated build, not a Chrome Web Store submission — see STORE_LISTING.md for that process." \
+            --prerelease
