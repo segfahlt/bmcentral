@@ -1,4 +1,4 @@
-<img src="icons/icon128.png" width="96" alt="bmcentral logo" />
+<img src="logo.png" width="96" alt="bmcentral logo" />
 
 # bmcentral
 
