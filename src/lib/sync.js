@@ -208,11 +208,25 @@ function parseFolderNodes(filesByPath) {
     if (!bookmarksByFolder.has(path)) bookmarksByFolder.set(path, new Map());
   }
 
+  // Register a directory AND every ancestor above it — a folder whose only
+  // content is nested subfolders (no direct file children of its own, e.g.
+  // a root that holds only category folders) must still be recognized as
+  // existing, or it gets treated as "source has no data here" and skipped.
+  function ensureFolderAndAncestors(dirPath) {
+    let path = dirPath;
+    while (true) {
+      ensureFolder(path);
+      const lastSlash = path.lastIndexOf("/");
+      if (lastSlash === -1) break;
+      path = path.slice(0, lastSlash);
+    }
+  }
+
   for (const [path, content] of Object.entries(filesByPath)) {
     const lastSlash = path.lastIndexOf("/");
     const dirPath = lastSlash === -1 ? "" : path.slice(0, lastSlash);
     const fileName = lastSlash === -1 ? path : path.slice(lastSlash + 1);
-    ensureFolder(dirPath);
+    ensureFolderAndAncestors(dirPath);
     if (fileName === "_folder.json") continue;
     bookmarksByFolder.get(dirPath).set(fileName, JSON.parse(content));
   }
