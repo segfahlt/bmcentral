@@ -44,6 +44,9 @@
       .status-ok { color: #157a15; }
       .status-bad { color: #a11; }
       .muted { color: #666; font-size: 0.85rem; }
+      #existingDevices { list-style: none; padding: 0; margin: 0.5rem 0; }
+      #existingDevices li { padding: 0.2rem 0; }
+      #existingDevices a { cursor: pointer; }
     </style>
   </head>
   <body>
@@ -76,6 +79,13 @@
       <label for="deviceName">Branch / device name</label>
       <input type="text" id="deviceName" placeholder="e.g. laptop-brave" />
       <p class="muted">Used as the sync branch name: <code>sync/&lt;this&gt;</code></p>
+
+      <p class="muted">
+        Existing devices on this repo — click one to reuse its identity (e.g. after
+        reinstalling the extension, which resets this device's saved name):
+      </p>
+      <ul id="existingDevices"><li class="muted">Loading...</li></ul>
+      <button id="refreshDevices">Refresh list</button>
     </fieldset>
 
     <button id="saveBtn">Save</button>

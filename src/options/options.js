@@ -1,4 +1,5 @@
-import { startDeviceFlow, completeDeviceFlow, getStoredAuth, clearStoredAuth } from "../lib/github-auth.js";
+import { startDeviceFlow, completeDeviceFlow, getStoredAuth, clearStoredAuth, getValidAccessToken } from "../lib/github-auth.js";
+import { listBranches } from "../lib/github-api.js";
 
 const authStatus = document.getElementById("authStatus");
 const connectBtn = document.getElementById("connectBtn");
@@ -13,11 +14,39 @@ const repoNameInput = document.getElementById("repoName");
 const deviceNameInput = document.getElementById("deviceName");
 const saveBtn = document.getElementById("saveBtn");
 const saveStatus = document.getElementById("saveStatus");
+const existingDevicesList = document.getElementById("existingDevices");
+const refreshDevicesBtn = document.getElementById("refreshDevices");
 
-function randomDeviceSuffix() {
-  const bytes = new Uint8Array(4);
+function randomDeviceSuffix(length = 4) {
+  const bytes = new Uint8Array(length);
   crypto.getRandomValues(bytes);
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("").slice(0, length);
+}
+
+function detectOSName() {
+  const platform = navigator.platform || "";
+  if (platform.startsWith("Win")) return "windows";
+  if (platform.startsWith("Mac")) return "mac";
+  if (platform.startsWith("Linux")) return "linux";
+  return "device";
+}
+
+async function detectBrowserName() {
+  if (navigator.brave) {
+    const isBrave = await navigator.brave.isBrave().catch(() => false);
+    if (isBrave) return "brave";
+  }
+  return "browser";
+}
+
+// Not a stable machine identifier — browser extensions can't read the OS
+// hostname (a deliberate anti-fingerprinting restriction) — just a more
+// recognizable default than plain random hex, so it's easier to tell "this
+// was probably me" when reclaiming an identity after a reinstall.
+async function suggestDeviceName() {
+  const os = detectOSName();
+  const browser = await detectBrowserName();
+  return `${os}-${browser}-${randomDeviceSuffix()}`;
 }
 
 async function refreshAuthStatus() {
@@ -39,7 +68,51 @@ async function loadSettings() {
   const { settings } = await chrome.storage.local.get("settings");
   repoOwnerInput.value = settings?.repoOwner || "segfahlt";
   repoNameInput.value = settings?.repoName || "bookmarks";
-  deviceNameInput.value = settings?.deviceName || `device-${randomDeviceSuffix()}`;
+  deviceNameInput.value = settings?.deviceName || (await suggestDeviceName());
+}
+
+function extractDeviceNames(branches) {
+  const names = new Set();
+  for (const branch of branches) {
+    const match = branch.name.match(/^(?:sync|backups)\/(.+)$/);
+    if (match) names.add(match[1]);
+  }
+  return [...names].sort();
+}
+
+async function refreshExistingDevices() {
+  existingDevicesList.innerHTML = '<li class="muted">Loading...</li>';
+  try {
+    const token = await getValidAccessToken();
+    if (!token) throw new Error("Connect to GitHub first");
+    const repoOwner = repoOwnerInput.value.trim();
+    const repoName = repoNameInput.value.trim();
+    if (!repoOwner || !repoName) throw new Error("Set repo owner/name first");
+
+    const branches = await listBranches(token, repoOwner, repoName);
+    const names = extractDeviceNames(branches);
+
+    if (names.length === 0) {
+      existingDevicesList.innerHTML = '<li class="muted">None found.</li>';
+      return;
+    }
+
+    existingDevicesList.innerHTML = "";
+    for (const name of names) {
+      const li = document.createElement("li");
+      const link = document.createElement("a");
+      link.href = "#";
+      link.textContent = name;
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        deviceNameInput.value = name;
+      });
+      li.appendChild(link);
+      existingDevicesList.appendChild(li);
+    }
+  } catch (err) {
+    existingDevicesList.innerHTML = `<li class="muted">${err.message}</li>`;
+  }
 }
 
 connectBtn.addEventListener("click", async () => {
@@ -57,6 +130,7 @@ connectBtn.addEventListener("click", async () => {
     pollStatus.textContent = "Connected!";
     deviceCodeBox.style.display = "none";
     await refreshAuthStatus();
+    await refreshExistingDevices();
   } catch (err) {
     pollStatus.textContent = `Error: ${err.message}`;
   } finally {
@@ -80,5 +154,7 @@ saveBtn.addEventListener("click", async () => {
   setTimeout(() => (saveStatus.textContent = ""), 2000);
 });
 
+refreshDevicesBtn.addEventListener("click", refreshExistingDevices);
+
 refreshAuthStatus();
-loadSettings();
+loadSettings().then(() => refreshExistingDevices());

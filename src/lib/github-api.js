@@ -27,6 +27,10 @@ export function getRepo(token, owner, repo) {
   return ghFetch(`/repos/${owner}/${repo}`, token);
 }
 
+export function listBranches(token, owner, repo) {
+  return ghFetch(`/repos/${owner}/${repo}/branches?per_page=100`, token);
+}
+
 export function getRef(token, owner, repo, ref) {
   return ghFetch(`/repos/${owner}/${repo}/git/ref/${ref}`, token, { allow404: true });
 }
