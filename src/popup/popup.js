@@ -1,6 +1,7 @@
 import { getStoredAuth } from "../lib/github-auth.js";
 
 const status = document.getElementById("status");
+const statusDot = document.getElementById("statusDot");
 const syncResult = document.getElementById("syncResult");
 const buttons = ["pushBtn", "pullBtn", "backupBtn", "restoreBtn"].map((id) => document.getElementById(id));
 
@@ -62,4 +63,5 @@ document.getElementById("restoreBtn").addEventListener("click", () => {
 
 getStoredAuth().then((auth) => {
   status.textContent = auth ? "Connected to GitHub." : "Not connected.";
+  statusDot.classList.toggle("eb-online", Boolean(auth));
 });

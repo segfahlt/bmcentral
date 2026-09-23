@@ -1,3 +1,5 @@
+<img src="icons/icon128.png" width="96" alt="bmcentral logo" />
+
 # bmcentral
 
 A browser extension that syncs Chrome/Brave/Edge bookmarks across machines, using a

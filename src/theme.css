@@ -1,0 +1,150 @@
+/* ElectricBlue.ai theme — trimmed for bmcentral's extension UI.
+   Source palette: ../ElectricBlueThemeColors (positive/dark variant, the
+   brand's primary expression). Electric Blue is the constant primary;
+   Neon Green is reserved for "connected / active / success" signals only. */
+
+:root {
+  --eb-blue: #0084ff;
+  --eb-blue-400: #1a94ff;
+  --eb-blue-600: #0069cc;
+  --eb-blue-700: #004f99;
+
+  --eb-green: #39ff14;
+  --eb-green-600: #23990c;
+
+  --eb-bg-base: #0b1120;
+  --eb-bg-surface: #111d30;
+  --eb-bg-raised: #172540;
+
+  --eb-border-subtle: #192540;
+  --eb-border-default: #243758;
+  --eb-border-strong: #2e4870;
+
+  --eb-text-primary: #e8f0ff;
+  --eb-text-secondary: #9fb4d8;
+  --eb-text-muted: #5c729c;
+
+  --eb-warning: #ffb800;
+  --eb-error: #ff3366;
+
+  --eb-glow-blue-sm: 0 0 6px rgba(0, 132, 255, 0.5);
+  --eb-glow-blue-md: 0 0 8px rgba(0, 132, 255, 0.6), 0 0 20px rgba(0, 132, 255, 0.3);
+  --eb-glow-green-sm: 0 0 6px rgba(57, 255, 20, 0.5);
+  --eb-glow-green-md: 0 0 8px rgba(57, 255, 20, 0.6), 0 0 20px rgba(57, 255, 20, 0.25);
+
+  --eb-font-display: "Orbitron", monospace;
+  --eb-font-heading: "Space Grotesk", sans-serif;
+  --eb-font-body: "Inter", system-ui, sans-serif;
+  --eb-font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --eb-radius-sm: 4px;
+  --eb-radius-md: 6px;
+  --eb-radius-lg: 10px;
+
+  --eb-space-1: 4px;
+  --eb-space-2: 8px;
+  --eb-space-3: 12px;
+  --eb-space-4: 16px;
+  --eb-space-6: 24px;
+
+  --eb-transition: 150ms ease;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--eb-font-body);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--eb-text-primary);
+  background: var(--eb-bg-base);
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--eb-font-heading);
+  font-weight: 600;
+  margin: 0;
+}
+
+code,
+.eb-mono {
+  font-family: var(--eb-font-mono);
+}
+
+a {
+  color: var(--eb-blue-400);
+}
+
+.eb-muted {
+  color: var(--eb-text-muted);
+}
+
+.eb-panel {
+  background: var(--eb-bg-surface);
+  border: 1px solid var(--eb-border-subtle);
+  border-radius: var(--eb-radius-lg);
+  padding: var(--eb-space-4);
+}
+
+.eb-btn {
+  font-family: var(--eb-font-body);
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--eb-radius-md);
+  padding: var(--eb-space-2) var(--eb-space-3);
+  border: 1px solid var(--eb-border-default);
+  background: var(--eb-bg-raised);
+  color: var(--eb-text-primary);
+  cursor: pointer;
+  transition: border-color var(--eb-transition), box-shadow var(--eb-transition), background var(--eb-transition);
+}
+
+.eb-btn:hover:not(:disabled) {
+  border-color: var(--eb-blue);
+  box-shadow: var(--eb-glow-blue-sm);
+}
+
+.eb-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.eb-btn-primary {
+  background: var(--eb-blue);
+  border-color: var(--eb-blue);
+  color: #ffffff;
+}
+
+.eb-btn-primary:hover:not(:disabled) {
+  background: var(--eb-blue-400);
+  box-shadow: var(--eb-glow-blue-md);
+}
+
+.eb-btn-caution {
+  background: var(--eb-bg-raised);
+  border-color: var(--eb-warning);
+  color: var(--eb-warning);
+}
+
+.eb-btn-caution:hover:not(:disabled) {
+  box-shadow: 0 0 6px rgba(255, 184, 0, 0.4);
+}
+
+.eb-status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--eb-text-muted);
+  margin-right: var(--eb-space-2);
+}
+
+.eb-status-dot.eb-online {
+  background: var(--eb-green);
+  box-shadow: var(--eb-glow-green-sm);
+}
