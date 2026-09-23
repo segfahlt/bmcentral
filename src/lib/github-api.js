@@ -35,6 +35,18 @@ export function getTreeRecursive(token, owner, repo, treeSha) {
   return ghFetch(`/repos/${owner}/${repo}/git/trees/${treeSha}?recursive=1`, token);
 }
 
+function decodeBase64Utf8(base64) {
+  const binary = atob(base64.replace(/\n/g, ""));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new TextDecoder("utf-8").decode(bytes);
+}
+
+export async function getBlob(token, owner, repo, sha) {
+  const res = await ghFetch(`/repos/${owner}/${repo}/git/blobs/${sha}`, token);
+  return decodeBase64Utf8(res.content);
+}
+
 export async function createBlob(token, owner, repo, content) {
   const res = await ghFetch(`/repos/${owner}/${repo}/git/blobs`, token, {
     method: "POST",

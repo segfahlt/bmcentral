@@ -7,9 +7,9 @@ document.getElementById("openOptions").addEventListener("click", () => {
   chrome.runtime.openOptionsPage();
 });
 
-document.getElementById("syncNow").addEventListener("click", () => {
-  syncResult.textContent = "Syncing...";
-  chrome.runtime.sendMessage({ type: "sync-now" }, (response) => {
+function runSync(type, verb, onResult) {
+  syncResult.textContent = `${verb}...`;
+  chrome.runtime.sendMessage({ type }, (response) => {
     if (!response) {
       syncResult.textContent = "No response from background script.";
       return;
@@ -18,11 +18,23 @@ document.getElementById("syncNow").addEventListener("click", () => {
       syncResult.textContent = `Error: ${response.error}`;
       return;
     }
-    const r = response.result;
-    syncResult.textContent = r.pushed
-      ? `Pushed: ${r.changed} changed, ${r.removed} removed. PR: ${r.pr}`
-      : `No changes (${r.reason}).`;
+    syncResult.textContent = onResult(response.result);
   });
+}
+
+document.getElementById("pushBtn").addEventListener("click", () => {
+  runSync("push-now", "Pushing", (r) =>
+    r.pushed ? `Pushed: ${r.changed} changed, ${r.removed} removed. PR: ${r.pr}` : `No changes (${r.reason}).`
+  );
+});
+
+document.getElementById("pullBtn").addEventListener("click", () => {
+  const confirmed = confirm(
+    "Pull will REPLACE your local bookmarks with whatever is on trunk (main). " +
+      "Any local-only bookmarks not yet pushed will be lost. Continue?"
+  );
+  if (!confirmed) return;
+  runSync("pull-now", "Pulling", (r) => `Pulled from trunk: ${r.bookmarksCreated} bookmarks created.`);
 });
 
 getStoredAuth().then((auth) => {

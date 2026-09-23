@@ -6,7 +6,7 @@
 
 import { bookmarkId } from "./uuid5.js";
 
-const ROOT_FOLDER_NAMES = {
+export const ROOT_FOLDER_NAMES = {
   "1": "Bookmarks Bar",
   "2": "Other Bookmarks",
   "3": "Mobile Bookmarks",
