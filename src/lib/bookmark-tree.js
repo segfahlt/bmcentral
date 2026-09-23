@@ -3,20 +3,17 @@
 // entirely from which files/subfolders are actually present under its path
 // — there's no separate list a device could clobber. Order is not stored
 // at all; it's recomputed on rebuild (folders alpha, then bookmarks alpha
-// by title — see sync.js). _folder.json is written only as a placeholder
-// for a folder that's otherwise completely empty, since git can't
-// represent an empty directory any other way.
-// Root folder names are pinned to Chrome's well-known root ids (not the
-// locale-dependent titles) so two devices in different languages still
-// agree on "Bookmarks Bar" / "Other Bookmarks" / "Mobile Bookmarks".
-
-import { bookmarkId } from "./uuid5.js";
-
-export const ROOT_FOLDER_NAMES = {
-  "1": "Bookmarks Bar",
-  "2": "Other Bookmarks",
-  "3": "Mobile Bookmarks",
-};
+// by title — see sync.js). A folder with nothing in it (no bookmarks, no
+// non-empty subfolders) is simply not represented at all — empty folders
+// aren't tracked or synced.
+//
+// Root folder names are matched by POSITION in chrome.bookmarks.getTree()'s
+// root.children, not by literal id. Chromium's bookmark model always
+// creates the three permanent roots in a fixed order (bar, other, mobile),
+// but the actual id strings ("1"/"2"/"3") are allocated per-profile, not
+// universal — hardcoding them broke cross-device sync the moment a
+// profile's ids didn't happen to match the convention.
+export const ROOT_FOLDER_NAMES_BY_INDEX = ["Bookmarks Bar", "Other Bookmarks", "Mobile Bookmarks"];
 
 const ILLEGAL_CHARS = /[<>:"/\\|?*\x00-\x1f]/g;
 
@@ -68,18 +65,20 @@ export async function buildDesiredFileMap() {
   const [root] = await chrome.bookmarks.getTree();
   const fileMap = new Map();
 
+  // Returns true if this folder (or any descendant) produced at least one
+  // file — a folder containing only other empty folders is itself empty
+  // and produces nothing either.
   async function walkFolder(node, dirPath) {
     const usedDirNames = new Set();
     const usedFileNames = new Set();
-    let childCount = 0;
+    let hasContent = false;
 
     for (const child of node.children || []) {
       if (child.children) {
         let dirName = sanitizeName(child.title);
         dirName = dedupeDirName(dirName, usedDirNames);
         const childPath = dirPath ? `${dirPath}/${dirName}` : dirName;
-        await walkFolder(child, childPath);
-        childCount++;
+        if (await walkFolder(child, childPath)) hasContent = true;
       } else if (child.url) {
         const id = await bookmarkId(child.url);
         const suffix = id.replace(/-/g, "").slice(-8);
@@ -94,20 +93,16 @@ export async function buildDesiredFileMap() {
         };
         const filePath = dirPath ? `${dirPath}/${fname}` : fname;
         fileMap.set(filePath, JSON.stringify(record, null, 2) + "\n");
-        childCount++;
+        hasContent = true;
       }
     }
 
-    if (childCount === 0) {
-      const markerPath = dirPath ? `${dirPath}/_folder.json` : "_folder.json";
-      fileMap.set(markerPath, "{}\n");
-    }
+    return hasContent;
   }
 
-  for (const rootChild of root.children || []) {
-    const dirName = ROOT_FOLDER_NAMES[rootChild.id];
-    if (!dirName) continue;
-    await walkFolder(rootChild, dirName);
+  const rootChildren = root.children || [];
+  for (let i = 0; i < rootChildren.length && i < ROOT_FOLDER_NAMES_BY_INDEX.length; i++) {
+    await walkFolder(rootChildren[i], ROOT_FOLDER_NAMES_BY_INDEX[i]);
   }
 
   return fileMap;

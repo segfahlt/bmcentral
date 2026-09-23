@@ -78,11 +78,17 @@ Mobile Bookmarks/
   function of the URL.
 - **Order is never stored.** It's recomputed on every rebuild: subfolders
   alphabetically first, then bookmarks alphabetically by title.
-- **`_folder.json`** is written *only* as a placeholder for a folder that's otherwise
-  completely empty — git can't represent an empty directory any other way. A folder
-  with real content never gets one.
+- **Empty folders aren't tracked.** A folder with nothing in it (no bookmarks, no
+  non-empty subfolders) simply isn't represented in the repo at all — it won't survive
+  a sync. This is a deliberate simplicity tradeoff, not an oversight.
 - **No tags** — not a concept native to any browser's bookmark model, so it was
   dropped from the design rather than round-tripped awkwardly.
+- **Root folders are matched by position, not id.** `chrome.bookmarks.getTree()`'s
+  three permanent root folders (Bookmarks Bar, Other Bookmarks, Mobile Bookmarks) are
+  always created in that fixed order by Chromium's bookmark model, but their id
+  strings are allocated per-profile — `"1"`/`"2"`/`"3"` is a common convention, not a
+  guarantee. Root ids are always resolved live against whichever machine is running,
+  never hardcoded.
 
 ## Setup
 

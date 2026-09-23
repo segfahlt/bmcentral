@@ -19,12 +19,21 @@
 // and rebuilds from that branch's latest commit.
 
 import { getValidAccessToken } from "./github-auth.js";
-import { buildDesiredFileMap, ROOT_FOLDER_NAMES } from "./bookmark-tree.js";
+import { buildDesiredFileMap, ROOT_FOLDER_NAMES_BY_INDEX } from "./bookmark-tree.js";
 import * as gh from "./github-api.js";
 
-const REVERSE_ROOT_FOLDER_NAMES = Object.fromEntries(
-  Object.entries(ROOT_FOLDER_NAMES).map(([id, name]) => [name, id])
-);
+// Root ids are per-profile, not universal (see bookmark-tree.js) — always
+// resolve them live from this machine's actual tree, by position, rather
+// than trusting any id that came from wherever the data was written.
+async function getLiveRootIds() {
+  const [root] = await chrome.bookmarks.getTree();
+  const rootChildren = root.children || [];
+  const rootIdByName = {};
+  for (let i = 0; i < rootChildren.length && i < ROOT_FOLDER_NAMES_BY_INDEX.length; i++) {
+    rootIdByName[ROOT_FOLDER_NAMES_BY_INDEX[i]] = rootChildren[i].id;
+  }
+  return rootIdByName;
+}
 
 async function getSettings() {
   const { settings } = await chrome.storage.local.get("settings");
@@ -196,9 +205,9 @@ export async function push() {
   return { pushed: true, changed: changed.length, removed: removed.length, pr: pr.html_url };
 }
 
-// Membership comes entirely from which paths exist under a directory —
-// _folder.json (if present at all) is just an empty-folder placeholder and
-// carries no data worth reading beyond "this folder exists".
+// Membership comes entirely from which paths exist under a directory.
+// A file literally named _folder.json is skipped defensively (harmless
+// legacy marker from an earlier design) rather than parsed as a bookmark.
 function parseFolderNodes(filesByPath) {
   const folderPaths = new Set();
   const bookmarksByFolder = new Map();
@@ -286,8 +295,9 @@ async function rebuildChromeFolder(folderPaths, bookmarksByFolder, dirPath, chro
 // the root folders the source actually has data for.
 async function applyFileMapToLocalBookmarks(filesByPath) {
   const { folderPaths, bookmarksByFolder } = parseFolderNodes(filesByPath);
+  const liveRootIds = await getLiveRootIds();
   let bookmarksCreated = 0;
-  for (const [rootDirName, chromeRootId] of Object.entries(REVERSE_ROOT_FOLDER_NAMES)) {
+  for (const [rootDirName, chromeRootId] of Object.entries(liveRootIds)) {
     if (!folderPaths.has(rootDirName)) continue; // source has no data for this root — leave local untouched
 
     let existingChildren;
@@ -334,7 +344,7 @@ async function fetchFileMapFromBranch(token, owner, repo, branchName) {
   // Ignore anything outside the known bookmark root folders — a README,
   // LICENSE, or other file used to seed the repo's first commit shouldn't
   // ever reach bookmark-parsing logic.
-  const knownRootPrefixes = Object.keys(REVERSE_ROOT_FOLDER_NAMES).map((name) => `${name}/`);
+  const knownRootPrefixes = ROOT_FOLDER_NAMES_BY_INDEX.map((name) => `${name}/`);
   const blobEntries = treeData.tree.filter(
     (entry) => entry.type === "blob" && knownRootPrefixes.some((prefix) => entry.path.startsWith(prefix))
   );
