@@ -257,14 +257,25 @@ async function rebuildChromeFolder(folderPaths, bookmarksByFolder, dirPath, chro
 
   for (const name of directSubfolderNames(folderPaths, dirPath)) {
     const childPath = `${dirPath}/${name}`;
-    const newFolder = await chrome.bookmarks.create({ parentId: chromeParentId, title: name });
+    let newFolder;
+    try {
+      newFolder = await chrome.bookmarks.create({ parentId: chromeParentId, title: name });
+    } catch (err) {
+      throw new Error(`Creating folder "${name}" under parentId=${chromeParentId} (path: ${childPath}): ${err.message}`);
+    }
     created += await rebuildChromeFolder(folderPaths, bookmarksByFolder, childPath, newFolder.id);
   }
 
   const records = [...(bookmarksByFolder.get(dirPath) || new Map()).values()];
   records.sort((a, b) => a.title.localeCompare(b.title));
   for (const record of records) {
-    await chrome.bookmarks.create({ parentId: chromeParentId, title: record.title, url: record.url });
+    try {
+      await chrome.bookmarks.create({ parentId: chromeParentId, title: record.title, url: record.url });
+    } catch (err) {
+      throw new Error(
+        `Creating bookmark "${record.title}" (${record.url}) under parentId=${chromeParentId} (path: ${dirPath}): ${err.message}`
+      );
+    }
     created++;
   }
 
@@ -279,7 +290,12 @@ async function applyFileMapToLocalBookmarks(filesByPath) {
   for (const [rootDirName, chromeRootId] of Object.entries(REVERSE_ROOT_FOLDER_NAMES)) {
     if (!folderPaths.has(rootDirName)) continue; // source has no data for this root — leave local untouched
 
-    const existingChildren = await chrome.bookmarks.getChildren(chromeRootId);
+    let existingChildren;
+    try {
+      existingChildren = await chrome.bookmarks.getChildren(chromeRootId);
+    } catch (err) {
+      throw new Error(`Getting children of root "${rootDirName}" (id=${chromeRootId}): ${err.message}`);
+    }
     for (const child of existingChildren) {
       try {
         if (child.url === undefined) {
