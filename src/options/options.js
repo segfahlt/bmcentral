@@ -111,7 +111,11 @@ async function refreshExistingDevices() {
       existingDevicesList.appendChild(li);
     }
   } catch (err) {
-    existingDevicesList.innerHTML = `<li class="muted">${err.message}</li>`;
+    existingDevicesList.innerHTML = "";
+    const li = document.createElement("li");
+    li.className = "muted";
+    li.textContent = err.message;
+    existingDevicesList.appendChild(li);
   }
 }
 
