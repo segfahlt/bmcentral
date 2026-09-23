@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>bmcentral settings</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 480px;
+        margin: 2rem auto;
+        color: #1a1a1a;
+      }
+      fieldset {
+        margin-bottom: 1.5rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+      }
+      label {
+        display: block;
+        margin: 0.5rem 0 0.25rem;
+        font-weight: 600;
+      }
+      input[type="text"] {
+        width: 100%;
+        padding: 0.4rem;
+        box-sizing: border-box;
+      }
+      button {
+        margin-top: 0.75rem;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+      }
+      #deviceCodeBox {
+        display: none;
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #f5f5f5;
+        border-radius: 8px;
+      }
+      #deviceCodeBox code {
+        font-size: 1.4rem;
+        letter-spacing: 0.1em;
+      }
+      .status-ok { color: #157a15; }
+      .status-bad { color: #a11; }
+      .muted { color: #666; font-size: 0.85rem; }
+    </style>
+  </head>
+  <body>
+    <h1>bmcentral</h1>
+
+    <fieldset>
+      <legend>GitHub connection</legend>
+      <p id="authStatus">Checking...</p>
+      <button id="connectBtn">Connect to GitHub</button>
+      <button id="disconnectBtn" style="display: none">Disconnect</button>
+      <div id="deviceCodeBox">
+        <p>
+          Go to <a id="verificationLink" href="#" target="_blank"></a> and enter this code:
+        </p>
+        <code id="userCode"></code>
+        <p class="muted" id="pollStatus"></p>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Repository</legend>
+      <label for="repoOwner">Owner</label>
+      <input type="text" id="repoOwner" placeholder="segfahlt" />
+      <label for="repoName">Repo</label>
+      <input type="text" id="repoName" placeholder="bookmarks" />
+    </fieldset>
+
+    <fieldset>
+      <legend>This device</legend>
+      <label for="deviceName">Branch / device name</label>
+      <input type="text" id="deviceName" placeholder="e.g. laptop-brave" />
+      <p class="muted">Used as the sync branch name: <code>sync/&lt;this&gt;</code></p>
+    </fieldset>
+
+    <button id="saveBtn">Save</button>
+    <p id="saveStatus" class="muted"></p>
+
+    <script type="module" src="options.js"></script>
+  </body>
+</html>
