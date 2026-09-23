@@ -17,7 +17,10 @@ function runSync(operation, sendResponse) {
   syncInFlight = true;
   operation()
     .then((result) => sendResponse({ ok: true, result }))
-    .catch((err) => sendResponse({ ok: false, error: err.message }))
+    .catch((err) => {
+      console.error(err);
+      sendResponse({ ok: false, error: err.message });
+    })
     .finally(() => {
       syncInFlight = false;
     });

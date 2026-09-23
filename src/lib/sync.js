@@ -281,10 +281,18 @@ async function applyFileMapToLocalBookmarks(filesByPath) {
 
     const existingChildren = await chrome.bookmarks.getChildren(chromeRootId);
     for (const child of existingChildren) {
-      if (child.url === undefined) {
-        await chrome.bookmarks.removeTree(child.id);
-      } else {
-        await chrome.bookmarks.remove(child.id);
+      try {
+        if (child.url === undefined) {
+          await chrome.bookmarks.removeTree(child.id);
+        } else {
+          await chrome.bookmarks.remove(child.id);
+        }
+      } catch (err) {
+        // Already gone (e.g. removed as part of removing an earlier sibling,
+        // or some other concurrent change) — the desired end state (this id
+        // no longer exists) is already true, so skip rather than abort the
+        // whole wipe partway through.
+        console.warn(`Skipping removal of bookmark ${child.id} (${child.title}): ${err.message}`);
       }
     }
 
