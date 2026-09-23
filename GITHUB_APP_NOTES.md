@@ -3,7 +3,15 @@
 For the BillsBookmarkManager App settings → **Permissions & events** →
 "Add a note to your users explaining why you are requesting these permissions."
 Shown to users on GitHub's own consent screen when they install the App —
-separate from anything on the Chrome Web Store.
+separate from anything on the Chrome Web Store. **Hard limit: 240 characters.**
+
+## Use this (236 characters)
+
+```
+Powers bmcentral (bookmark-sync extension). Contents: read/write bookmark files. Pull requests: each sync opens a reviewable PR instead of writing directly to your default branch. Use a bookmarks-only repo. github.com/segfahlt/bmcentral
+```
+
+## Longer version (over the limit — kept for the Chrome Web Store listing / README instead)
 
 ```
 This app powers bmcentral, a browser extension that syncs your bookmarks across
@@ -19,13 +27,4 @@ Install this app only on a repository dedicated to bookmark data — the extensi
 manages that repo's contents directly as part of normal syncing.
 
 Source: https://github.com/segfahlt/bmcentral
-```
-
-If GitHub enforces a shorter character limit than this fits, trim to:
-
-```
-Powers bmcentral (https://github.com/segfahlt/bmcentral), a bookmark-sync browser
-extension. Contents access reads/writes your bookmark files; pull request access
-lets each sync open a reviewable PR instead of writing directly to your default
-branch. Install only on a repo dedicated to bookmark data.
 ```
