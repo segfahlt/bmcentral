@@ -1,5 +1,11 @@
 // Converts the live chrome.bookmarks tree into the repo's file layout:
-// one JSON file per bookmark, _folder.json per directory for ordering.
+// one JSON file per bookmark. A folder's existence and contents come
+// entirely from which files/subfolders are actually present under its path
+// — there's no separate list a device could clobber. Order is not stored
+// at all; it's recomputed on rebuild (folders alpha, then bookmarks alpha
+// by title — see sync.js). _folder.json is written only as a placeholder
+// for a folder that's otherwise completely empty, since git can't
+// represent an empty directory any other way.
 // Root folder names are pinned to Chrome's well-known root ids (not the
 // locale-dependent titles) so two devices in different languages still
 // agree on "Bookmarks Bar" / "Other Bookmarks" / "Mobile Bookmarks".
@@ -63,9 +69,9 @@ export async function buildDesiredFileMap() {
   const fileMap = new Map();
 
   async function walkFolder(node, dirPath) {
-    const order = [];
     const usedDirNames = new Set();
     const usedFileNames = new Set();
+    let childCount = 0;
 
     for (const child of node.children || []) {
       if (child.children) {
@@ -73,7 +79,7 @@ export async function buildDesiredFileMap() {
         dirName = dedupeDirName(dirName, usedDirNames);
         const childPath = dirPath ? `${dirPath}/${dirName}` : dirName;
         await walkFolder(child, childPath);
-        order.push(`${dirName}/`);
+        childCount++;
       } else if (child.url) {
         const id = await bookmarkId(child.url);
         const suffix = id.replace(/-/g, "").slice(-8);
@@ -88,12 +94,14 @@ export async function buildDesiredFileMap() {
         };
         const filePath = dirPath ? `${dirPath}/${fname}` : fname;
         fileMap.set(filePath, JSON.stringify(record, null, 2) + "\n");
-        order.push(fname);
+        childCount++;
       }
     }
 
-    const folderJsonPath = dirPath ? `${dirPath}/_folder.json` : "_folder.json";
-    fileMap.set(folderJsonPath, JSON.stringify({ order }, null, 2) + "\n");
+    if (childCount === 0) {
+      const markerPath = dirPath ? `${dirPath}/_folder.json` : "_folder.json";
+      fileMap.set(markerPath, "{}\n");
+    }
   }
 
   for (const rootChild of root.children || []) {
