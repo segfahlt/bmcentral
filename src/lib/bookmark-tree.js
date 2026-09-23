@@ -13,7 +13,11 @@
 // but the actual id strings ("1"/"2"/"3") are allocated per-profile, not
 // universal — hardcoding them broke cross-device sync the moment a
 // profile's ids didn't happen to match the convention.
+
+import { bookmarkId } from "./uuid5.js";
+
 export const ROOT_FOLDER_NAMES_BY_INDEX = ["Bookmarks Bar", "Other Bookmarks", "Mobile Bookmarks"];
+
 
 const ILLEGAL_CHARS = /[<>:"/\\|?*\x00-\x1f]/g;
 
