@@ -93,15 +93,15 @@
     </div>
 
     <div class="btn-grid">
-      <button id="pushBtn" class="eb-btn eb-btn-primary">Push</button>
-      <button id="backupBtn" class="eb-btn">Backup</button>
-      <button id="pullBtn" class="eb-btn eb-btn-caution">Pull</button>
-      <button id="restoreBtn" class="eb-btn eb-btn-caution">Restore</button>
+      <button id="pushBtn" class="eb-btn eb-btn-primary" title="Send your local bookmark changes to GitHub and open a pull request">Push</button>
+      <button id="backupBtn" class="eb-btn" title="Save a snapshot of your current bookmarks to GitHub. Safe — doesn't touch your local bookmarks">Backup</button>
+      <button id="pullBtn" class="eb-btn eb-btn-caution" title="Replace your local bookmarks with what's on GitHub. Backs up your current bookmarks first">Pull</button>
+      <button id="restoreBtn" class="eb-btn eb-btn-caution" title="Replace your local bookmarks with your last backup on this device">Restore</button>
     </div>
 
     <p id="syncResult"></p>
 
-    <button id="openOptions">Settings</button>
+    <button id="openOptions" title="Configure your GitHub connection, repository, and device name">Settings</button>
 
     <script type="module" src="popup.js"></script>
   </body>

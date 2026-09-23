@@ -1,36 +1,39 @@
 /* ElectricBlue.ai theme — trimmed for bmcentral's extension UI.
-   Source palette: ../ElectricBlueThemeColors (positive/dark variant, the
-   brand's primary expression). Electric Blue is the constant primary;
-   Neon Green is reserved for "connected / active / success" signals only. */
+   Source palette: ../ElectricBlueThemeColors, REVERSED (light) variant.
+   Electric Blue is the constant primary — unchanged from the dark variant.
+   Neon Green shifts to Green-600 on light surfaces for WCAG AA contrast
+   (per brand spec) and is reserved for "connected / active / success"
+   signals only. Glow effects are reduced on light surfaces — the dark
+   variant's full bloom doesn't read against a light ground. */
 
 :root {
   --eb-blue: #0084ff;
-  --eb-blue-400: #1a94ff;
-  --eb-blue-600: #0069cc;
-  --eb-blue-700: #004f99;
+  --eb-blue-400: #0069cc;
+  --eb-blue-600: #004f99;
+  --eb-blue-700: #003566;
 
-  --eb-green: #39ff14;
-  --eb-green-600: #23990c;
+  --eb-green: #23990c;
+  --eb-green-600: #186608;
 
-  --eb-bg-base: #0b1120;
-  --eb-bg-surface: #111d30;
-  --eb-bg-raised: #172540;
+  --eb-bg-base: #f5f8ff;
+  --eb-bg-surface: #ffffff;
+  --eb-bg-raised: #ebf1ff;
 
-  --eb-border-subtle: #192540;
-  --eb-border-default: #243758;
-  --eb-border-strong: #2e4870;
+  --eb-border-subtle: #dde8ff;
+  --eb-border-default: #b9cde8;
+  --eb-border-strong: #6d9ac8;
 
-  --eb-text-primary: #e8f0ff;
-  --eb-text-secondary: #9fb4d8;
-  --eb-text-muted: #5c729c;
+  --eb-text-primary: #0b1120;
+  --eb-text-secondary: #1e3a5f;
+  --eb-text-muted: #5c7ba0;
 
-  --eb-warning: #ffb800;
-  --eb-error: #ff3366;
+  --eb-warning: #a07000;
+  --eb-error: #cc1a44;
 
-  --eb-glow-blue-sm: 0 0 6px rgba(0, 132, 255, 0.5);
-  --eb-glow-blue-md: 0 0 8px rgba(0, 132, 255, 0.6), 0 0 20px rgba(0, 132, 255, 0.3);
-  --eb-glow-green-sm: 0 0 6px rgba(57, 255, 20, 0.5);
-  --eb-glow-green-md: 0 0 8px rgba(57, 255, 20, 0.6), 0 0 20px rgba(57, 255, 20, 0.25);
+  --eb-glow-blue-sm: 0 0 4px rgba(0, 132, 255, 0.25);
+  --eb-glow-blue-md: 0 0 5px rgba(0, 132, 255, 0.3), 0 0 12px rgba(0, 132, 255, 0.15);
+  --eb-glow-green-sm: 0 0 4px rgba(35, 153, 12, 0.3);
+  --eb-glow-green-md: 0 0 5px rgba(35, 153, 12, 0.35), 0 0 12px rgba(35, 153, 12, 0.15);
 
   --eb-font-display: "Orbitron", monospace;
   --eb-font-heading: "Space Grotesk", sans-serif;
@@ -132,7 +135,7 @@ a {
 }
 
 .eb-btn-caution:hover:not(:disabled) {
-  box-shadow: 0 0 6px rgba(255, 184, 0, 0.4);
+  box-shadow: 0 0 5px rgba(160, 112, 0, 0.3);
 }
 
 .eb-status-dot {
