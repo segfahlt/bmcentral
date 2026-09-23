@@ -228,7 +228,12 @@ function parseFolderNodes(filesByPath) {
     const fileName = lastSlash === -1 ? path : path.slice(lastSlash + 1);
     ensureFolderAndAncestors(dirPath);
     if (fileName === "_folder.json") continue;
-    bookmarksByFolder.get(dirPath).set(fileName, JSON.parse(content));
+    try {
+      bookmarksByFolder.get(dirPath).set(fileName, JSON.parse(content));
+    } catch {
+      // Not a bookmark record we understand — skip it rather than fail the
+      // whole pull/restore over one unexpected file.
+    }
   }
 
   return { folderPaths, bookmarksByFolder };
@@ -302,7 +307,13 @@ async function fetchFileMapFromBranch(token, owner, repo, branchName) {
     throw new Error("Tree is too large for a single recursive fetch — pagination not implemented yet");
   }
 
-  const blobEntries = treeData.tree.filter((entry) => entry.type === "blob");
+  // Ignore anything outside the known bookmark root folders — a README,
+  // LICENSE, or other file used to seed the repo's first commit shouldn't
+  // ever reach bookmark-parsing logic.
+  const knownRootPrefixes = Object.keys(REVERSE_ROOT_FOLDER_NAMES).map((name) => `${name}/`);
+  const blobEntries = treeData.tree.filter(
+    (entry) => entry.type === "blob" && knownRootPrefixes.some((prefix) => entry.path.startsWith(prefix))
+  );
   const filesByPath = {};
   await mapWithConcurrency(blobEntries, 8, async (entry) => {
     filesByPath[entry.path] = await gh.getBlob(token, owner, repo, entry.sha);
