@@ -3,7 +3,13 @@ name: Build extension package
 # Packages only the extension's runtime files (no README/docs/git metadata)
 # into a zip, ready to upload to the Chrome Web Store dashboard. No Chrome
 # Web Store credentials involved — that step is still manual, see
-# STORE_LISTING.md. This just keeps a downloadable build always current.
+# STORE_LISTING.md.
+#
+# Auto-bumps manifest.json's patch version on every run and commits it back
+# to trunk (Chrome Web Store requires each upload to have a strictly higher
+# version than the last one). That commit includes [skip ci], which GitHub
+# treats specially: it skips ALL workflows for that push, which is what
+# stops this from triggering itself in a loop.
 
 on:
   push:
@@ -18,6 +24,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Bump patch version
+        id: bump
+        run: |
+          NEW_VERSION=$(node -e "
+            const fs = require('fs');
+            const manifest = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
+            const parts = manifest.version.split('.').map(Number);
+            parts[parts.length - 1] += 1;
+            manifest.version = parts.join('.');
+            fs.writeFileSync('manifest.json', JSON.stringify(manifest, null, 2) + '\n');
+            console.log(manifest.version);
+          ")
+          echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add manifest.json
+          git commit -m "Bump version to $NEW_VERSION [skip ci]"
+          git push
 
       - name: Build extension zip
         run: |
@@ -38,13 +64,22 @@ jobs:
           path: bmcentral.zip
           retention-days: 30
 
-      - name: Publish rolling "latest" release
+      - name: Publish versioned release
         env:
           GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.bump.outputs.version }}
         run: |
-          VERSION=$(node -p "require('./manifest.json').version")
+          gh release create "v$VERSION" bmcentral.zip \
+            --title "bmcentral v$VERSION" \
+            --notes "Auto-built from commit ${{ github.sha }}. This is an automated build, not a Chrome Web Store submission — see STORE_LISTING.md for that process."
+
+      - name: Update rolling "latest" release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.bump.outputs.version }}
+        run: |
           gh release delete latest --yes --cleanup-tag || true
           gh release create latest bmcentral.zip \
-            --title "bmcentral (latest build)" \
-            --notes "Auto-built from commit ${{ github.sha }} (manifest version ${VERSION}). This is an automated build, not a Chrome Web Store submission — see STORE_LISTING.md for that process." \
+            --title "bmcentral (latest build, v$VERSION)" \
+            --notes "Always points at the most recent build. Auto-built from commit ${{ github.sha }} (v$VERSION) — see the versioned releases for permanent history." \
             --prerelease
