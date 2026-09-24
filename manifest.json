@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "bmcentral",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Sync bookmarks across browsers via a GitHub-backed repo.",
   "permissions": [
     "bookmarks",
