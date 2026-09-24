@@ -1,10 +1,16 @@
 {
   "manifest_version": 3,
   "name": "bmcentral",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Sync bookmarks across browsers via a GitHub-backed repo.",
-  "permissions": ["bookmarks", "storage"],
-  "host_permissions": ["https://api.github.com/*", "https://github.com/*"],
+  "permissions": [
+    "bookmarks",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://api.github.com/*",
+    "https://github.com/*"
+  ],
   "background": {
     "service_worker": "background.js",
     "type": "module"
