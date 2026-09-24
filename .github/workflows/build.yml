@@ -5,16 +5,33 @@ name: Build extension package
 # Web Store credentials involved — that step is still manual, see
 # STORE_LISTING.md.
 #
-# Auto-bumps manifest.json's patch version on every run and commits it back
-# to trunk (Chrome Web Store requires each upload to have a strictly higher
+# Auto-bumps manifest.json's version on every run and commits it back to
+# trunk (Chrome Web Store requires each upload to have a strictly higher
 # version than the last one). That commit includes [skip ci], which GitHub
 # treats specially: it skips ALL workflows for that push, which is what
 # stops this from triggering itself in a loop.
+#
+# Ordinary pushes always bump the patch number. To bump minor or major
+# instead (e.g. when you're ready to call it 1.0.0), trigger manually:
+#   gh workflow run build.yml --ref trunk -f bump_type=minor
+#   gh workflow run build.yml --ref trunk -f bump_type=major
+# or use the "Run workflow" button on the Actions tab and pick from the
+# dropdown there.
 
 on:
   push:
     branches: [trunk]
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: "Version part to bump"
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 permissions:
   contents: write
@@ -25,15 +42,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Bump patch version
+      - name: Bump version
         id: bump
+        env:
+          BUMP_TYPE: ${{ github.event.inputs.bump_type || 'patch' }}
         run: |
           NEW_VERSION=$(node -e "
             const fs = require('fs');
+            const bumpType = process.env.BUMP_TYPE;
             const manifest = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
-            const parts = manifest.version.split('.').map(Number);
-            parts[parts.length - 1] += 1;
-            manifest.version = parts.join('.');
+            const [major, minor, patch] = manifest.version.split('.').map(Number);
+            let next;
+            if (bumpType === 'major') next = [major + 1, 0, 0];
+            else if (bumpType === 'minor') next = [major, minor + 1, 0];
+            else next = [major, minor, patch + 1];
+            manifest.version = next.join('.');
             fs.writeFileSync('manifest.json', JSON.stringify(manifest, null, 2) + '\n');
             console.log(manifest.version);
           ")
