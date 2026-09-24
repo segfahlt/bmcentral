@@ -5,6 +5,10 @@
 A browser extension that syncs Chrome/Brave/Edge bookmarks across machines, using a
 GitHub repository as the persistence layer — no backend server involved.
 
+**[Download the latest build](https://github.com/segfahlt/bmcentral/releases/tag/latest)**
+— rebuilt automatically on every push, see [Repo structure](#repo-structure) below for
+how to load it unpacked.
+
 ## How it works
 
 The extension talks directly to GitHub's REST + Git Data API from its background
