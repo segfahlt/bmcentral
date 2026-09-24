@@ -43,12 +43,14 @@
   --eb-radius-sm: 4px;
   --eb-radius-md: 6px;
   --eb-radius-lg: 10px;
+  --eb-radius-full: 9999px;
 
   --eb-space-1: 4px;
   --eb-space-2: 8px;
   --eb-space-3: 12px;
   --eb-space-4: 16px;
   --eb-space-6: 24px;
+  --eb-space-8: 32px;
 
   --eb-transition: 150ms ease;
 }

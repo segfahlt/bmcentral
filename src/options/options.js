@@ -2,6 +2,7 @@ import { startDeviceFlow, completeDeviceFlow, getStoredAuth, clearStoredAuth, ge
 import { listBranches } from "../lib/github-api.js";
 
 const authStatus = document.getElementById("authStatus");
+const authStatusDot = document.getElementById("authStatusDot");
 const connectBtn = document.getElementById("connectBtn");
 const disconnectBtn = document.getElementById("disconnectBtn");
 const deviceCodeBox = document.getElementById("deviceCodeBox");
@@ -51,6 +52,7 @@ async function suggestDeviceName() {
 
 async function refreshAuthStatus() {
   const auth = await getStoredAuth();
+  authStatusDot.classList.toggle("eb-online", Boolean(auth));
   if (auth) {
     authStatus.textContent = "Connected to GitHub.";
     authStatus.className = "status-ok";

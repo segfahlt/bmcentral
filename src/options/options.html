@@ -3,60 +3,180 @@
   <head>
     <meta charset="utf-8" />
     <title>bmcentral settings</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Space+Grotesk:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+    <link rel="stylesheet" href="../theme.css" />
     <style>
       body {
-        font-family: system-ui, sans-serif;
-        max-width: 480px;
-        margin: 2rem auto;
-        color: #1a1a1a;
+        max-width: 520px;
+        margin: var(--eb-space-8) auto;
+        padding: 0 var(--eb-space-4);
       }
+
+      header {
+        display: flex;
+        align-items: center;
+        gap: var(--eb-space-3);
+        margin-bottom: var(--eb-space-6);
+      }
+
+      header img {
+        height: 44px;
+        width: auto;
+      }
+
+      .wordmark {
+        font-family: var(--eb-font-display);
+        font-weight: 700;
+        font-size: 20px;
+        letter-spacing: 0.08em;
+        color: var(--eb-blue);
+        text-shadow: var(--eb-glow-blue-md);
+      }
+
+      .eyebrow {
+        font-family: var(--eb-font-heading);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--eb-text-muted);
+      }
+
       fieldset {
-        margin-bottom: 1.5rem;
-        border: 1px solid #ddd;
-        border-radius: 8px;
+        margin-bottom: var(--eb-space-4);
+        border: 1px solid var(--eb-border-subtle);
+        border-radius: var(--eb-radius-lg);
+        background: var(--eb-bg-surface);
+        padding: var(--eb-space-4);
       }
+
+      legend {
+        font-family: var(--eb-font-heading);
+        font-weight: 600;
+        font-size: 13px;
+        padding: 0 var(--eb-space-1);
+        color: var(--eb-text-primary);
+      }
+
       label {
         display: block;
-        margin: 0.5rem 0 0.25rem;
+        margin: var(--eb-space-2) 0 var(--eb-space-1);
+        font-size: 12px;
         font-weight: 600;
+        color: var(--eb-text-secondary);
       }
+
       input[type="text"] {
         width: 100%;
-        padding: 0.4rem;
+        padding: var(--eb-space-2);
         box-sizing: border-box;
+        font-family: var(--eb-font-body);
+        font-size: 13px;
+        color: var(--eb-text-primary);
+        background: var(--eb-bg-base);
+        border: 1px solid var(--eb-border-default);
+        border-radius: var(--eb-radius-sm);
       }
-      button {
-        margin-top: 0.75rem;
-        padding: 0.5rem 1rem;
-        cursor: pointer;
+
+      input[type="text"]:focus {
+        outline: none;
+        border-color: var(--eb-blue);
+        box-shadow: var(--eb-glow-blue-sm);
       }
+
       #deviceCodeBox {
         display: none;
-        margin-top: 1rem;
-        padding: 1rem;
-        background: #f5f5f5;
-        border-radius: 8px;
+        margin-top: var(--eb-space-3);
+        padding: var(--eb-space-3);
+        background: var(--eb-bg-raised);
+        border: 1px solid var(--eb-border-default);
+        border-radius: var(--eb-radius-md);
       }
+
       #deviceCodeBox code {
+        font-family: var(--eb-font-mono);
         font-size: 1.4rem;
         letter-spacing: 0.1em;
+        color: var(--eb-blue);
       }
-      .status-ok { color: #157a15; }
-      .status-bad { color: #a11; }
-      .muted { color: #666; font-size: 0.85rem; }
-      #existingDevices { list-style: none; padding: 0; margin: 0.5rem 0; }
-      #existingDevices li { padding: 0.2rem 0; }
-      #existingDevices a { cursor: pointer; }
+
+      .status-row {
+        display: flex;
+        align-items: center;
+        font-size: 13px;
+        margin-bottom: var(--eb-space-2);
+      }
+
+      .status-ok {
+        color: var(--eb-green);
+      }
+
+      .status-bad {
+        color: var(--eb-error);
+      }
+
+      .muted {
+        color: var(--eb-text-muted);
+        font-size: 12px;
+      }
+
+      #existingDevices {
+        list-style: none;
+        padding: 0;
+        margin: var(--eb-space-2) 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--eb-space-1);
+      }
+
+      #existingDevices li {
+        padding: 0;
+      }
+
+      #existingDevices a {
+        display: inline-block;
+        padding: var(--eb-space-1) var(--eb-space-2);
+        background: var(--eb-bg-raised);
+        border: 1px solid var(--eb-border-default);
+        border-radius: var(--eb-radius-full);
+        color: var(--eb-text-secondary);
+        font-family: var(--eb-font-mono);
+        font-size: 11px;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      #existingDevices a:hover {
+        border-color: var(--eb-blue);
+        color: var(--eb-blue-400);
+      }
+
+      #saveBtn {
+        width: 100%;
+        margin-top: var(--eb-space-2);
+      }
     </style>
   </head>
   <body>
-    <h1>bmcentral</h1>
+    <header>
+      <img src="../../logo.png" alt="" />
+      <div>
+        <div class="wordmark">bmcentral</div>
+        <div class="eyebrow">Settings</div>
+      </div>
+    </header>
 
     <fieldset>
       <legend>GitHub connection</legend>
-      <p id="authStatus">Checking...</p>
-      <button id="connectBtn">Connect to GitHub</button>
-      <button id="disconnectBtn" style="display: none">Disconnect</button>
+      <div class="status-row">
+        <span id="authStatusDot" class="eb-status-dot"></span>
+        <span id="authStatus">Checking...</span>
+      </div>
+      <button id="connectBtn" class="eb-btn eb-btn-primary">Connect to GitHub</button>
+      <button id="disconnectBtn" class="eb-btn" style="display: none">Disconnect</button>
       <div id="deviceCodeBox">
         <p>
           Go to <a id="verificationLink" href="#" target="_blank"></a> and enter this code:
@@ -85,10 +205,10 @@
         reinstalling the extension, which resets this device's saved name):
       </p>
       <ul id="existingDevices"><li class="muted">Loading...</li></ul>
-      <button id="refreshDevices">Refresh list</button>
+      <button id="refreshDevices" class="eb-btn">Refresh list</button>
     </fieldset>
 
-    <button id="saveBtn">Save</button>
+    <button id="saveBtn" class="eb-btn eb-btn-primary">Save</button>
     <p id="saveStatus" class="muted"></p>
 
     <script type="module" src="options.js"></script>
